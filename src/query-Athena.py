@@ -19,7 +19,7 @@ def lambda_handler(event, context):
     query_execution = athena.start_query_execution(
         QueryString= query_string, #"select distinct o.id as order_id,s1.actual_departure, o.status,mo.num_of_moves,m.brokerage_status,o.shipper_stop_id , o.consignee_stop_id,date_diff('hour', s1.actual_departure, CURRENT_DATE) as date_diff_hrs, o.ready_to_bill from orders o left join stop s1 on s1.id =o.shipper_stop_id left join stop s2 on s2.id =o.consignee_stop_id left join (select o.id, count (mo.movement_id) as num_of_moves from orders o left join movement_order mo on mo.order_id = o.id group by o.id) mo on mo.id=o.id left join movement_order mo2 on mo2.order_id =o.id left join movement m on m.id = mo2.movement_id where o.status = 'D' and o.ready_to_bill='N' and mo.num_of_moves=1 and m.brokerage_status='DELIVERD' and date_diff('hour', s1.actual_departure, CURRENT_DATE) >= 96 limit 10;",
         QueryExecutionContext={
-            'Database':  'ready-to-bill-db' 
+            'Database':  'dw-etl-lvlp-dev' 
         }
     )
     query_execution_id = query_execution['QueryExecutionId']

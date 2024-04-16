@@ -38,14 +38,14 @@ def lambda_handler(event, context):
             s3_key = s3_file_path.split('/', 3)[-1]
 
             # Send the S3 key to an SSM parameter
-            parameter_name = os.environ['ssm_parameter'] # Specify your SSM parameter name
-            ssm.put_parameter(
-                Name=parameter_name,
-                Value=s3_key,
-                Type='String',
-                Overwrite=True  # Overwrite if parameter exists
-            )
-            print("S3 Key sent to SSM parameter:", parameter_name)
+            # parameter_name = os.environ['ssm_parameter'] # Specify your SSM parameter name
+            # ssm.put_parameter(
+            #     Name=parameter_name,
+            #     Value=s3_key,
+            #     Type='String',
+            #     Overwrite=True  # Overwrite if parameter exists
+            # )
+            # print("S3 Key sent to SSM parameter:", parameter_name)
             break  # Exit the loop after sending the parameter
             
     return {"Bucket": s3_bucket,"Key":s3_key}

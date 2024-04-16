@@ -1,0 +1,11 @@
+ready-for-billing:
+  Type: AWS::DynamoDB::Table
+  Properties:
+    TableName: omni-live-logistics-ready-for-billing-${self:provider.stage}
+    BillingMode: PAY_PER_REQUEST
+    AttributeDefinitions:
+      - AttributeName: "order_id"
+        AttributeType: "S"
+    KeySchema:
+      - AttributeName: "order_id"
+        KeyType: HASH

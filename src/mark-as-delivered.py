@@ -25,7 +25,7 @@ def lambda_handler(event, context):
         table.put_item(
             Item={
                 'order_id': order_id,
-                'ready_to_bill': response,
+                'movement_id': movement_id,
                 'status': status
             }
                 )
@@ -59,15 +59,24 @@ def update_movement(movement_id, order_id):
     get_output.pop("brokerage_status_row")
     get_output["brokerage_status"] = "DELIVERD"
     get_output["status"] = "D"
-    get_url2 = f"https://tms-lvlp.loadtracking.com:6790/ws/stop/{dest_stop_id}"
+    if env=='dev':
+        get_url2 = f"https://tms-lvlp.loadtracking.com:6790/ws/stop/{dest_stop_id}"
+    else:
+        get_url2 = f"https://tms-lvlp.loadtracking.com/ws/stop/{dest_stop_id}"
     get_response2 = requests.get(get_url2, auth=(username, password), headers=mcleod_headers)
     get_output2 = get_response2.json()
-    get_url3 = f"https://tms-lvlp.loadtracking.com:6790/ws/orders/{order_id}"
+    if env=='dev':
+        get_url3 = f"https://tms-lvlp.loadtracking.com:6790/ws/orders/{order_id}"
+    else:
+        get_url3 = f"https://tms-lvlp.loadtracking.com/ws/orders/{order_id}"
     get_response3 = requests.get(get_url3, auth=(username, password), headers=mcleod_headers)
     get_output3 = get_response3.json()
     get_output3.pop("__statusDescr")
     get_output3['status'] = "D"
-    put_url3 = f"https://tms-lvlp.loadtracking.com:6790/ws/orders/update"
+    if env=='dev':
+        put_url3 = f"https://tms-lvlp.loadtracking.com:6790/ws/orders/update"
+    else:
+        put_url3 = f"https://tms-lvlp.loadtracking.com/ws/orders/update"
     put_response3 = requests.put(put_url3, auth=(username, password), headers=mcleod_headers, json=get_output3)
     print(f"Updating Order: {put_response3.status_code}")
     arrival = get_output2['actual_arrival']
@@ -75,9 +84,16 @@ def update_movement(movement_id, order_id):
     departure = arrival + timedelta(hours=2)
     departure = departure.strftime('%Y%m%d%H%M%S%z')
     get_output2["actual_departure"] = departure
-    put_url2 = f"https://tms-lvlp.loadtracking.com:6790/ws/stop/update"
+    if env=='dev':
+        put_url2 = f"https://tms-lvlp.loadtracking.com:6790/ws/stop/update"
+    else:
+        put_url2 = f"https://tms-lvlp.loadtracking.com/ws/stop/update"
     put_response2 = requests.put(put_url2, auth=(username, password), headers=mcleod_headers, json=get_output2)
     print(f"Updating Stop: {put_response2.status_code}")
-    put_url = f"https://tms-lvlp.loadtracking.com:6790/ws/movement/update"
+    if env=='dev':
+        put_url = f"https://tms-lvlp.loadtracking.com:6790/ws/movement/update"
+    else:
+        put_url = f"https://tms-lvlp.loadtracking.com/ws/movement/update"
     put_response = requests.put(put_url, auth=(username, password), headers=mcleod_headers, json=get_output)
     print(f"Updating Movement: {put_response.status_code}")
+    return put_response

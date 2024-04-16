@@ -58,11 +58,12 @@ stepFunctions:
 
 resources:
   Resources:
-    BucketKey:
-      Type: "AWS::SSM::Parameter"
-      Properties:
-        Name: '/markasdelivered/bucket/key/parameter/${self:provider.stage}'
-        Type: "String"
+    # BucketKey:
+    #   Type: "AWS::SSM::Parameter"
+    #   Properties:
+    #     Name: '/markasdelivered/bucket/key/parameter/${self:provider.stage}'
+    #     Type: "String"
+    #     Value: "bucketkey"
     # ReadyforBilling: ${file(config/dynamo/ready-for-billing-table.yml):ready-for-billing}
 
     stateMachineRole:

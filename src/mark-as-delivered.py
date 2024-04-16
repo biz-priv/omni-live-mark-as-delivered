@@ -12,7 +12,7 @@ def lambda_handler(event, context):
     for item in event["Payload"]:
         order_id=item['item']["order_id"]
         movement_id=item['item']["movement_id"]
-        print("ids",movement_id,order_id)
+        print("ids",movement_id,order_id,os.environ['Environment'])
         response=update_movement(movement_id,order_id)
         # Update status based on response
         if response == 200:
@@ -41,11 +41,15 @@ def update_movement(movement_id, order_id):
     ##############
     # GET MOVEMENT INFO
     ##############
-    username = "apiuser"
-    password = "lvlpapiuser"
+    username = os.environ['Username']
+    password = os.environ['Password']
+    env=os.environ['Environment']
     mcleod_headers = {'Accept': 'application/json',
                       'Content-Type': 'application/json'}
-    get_url = f"https://tms-lvlp.loadtracking.com:6790/ws/movement/{movement_id}"
+    if env=='dev':
+        get_url = f"https://tms-lvlp.loadtracking.com:6790/ws/movement/{movement_id}"
+    else:
+        get_url = f"https://tms-lvlp.loadtracking.com/ws/movement/{movement_id}"
     get_response = requests.get(get_url, auth=(username, password), headers=mcleod_headers)
     get_output = get_response.json()
     ##############

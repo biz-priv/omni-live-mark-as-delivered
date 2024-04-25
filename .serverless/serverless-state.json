@@ -1,0 +1,859 @@
+{
+  "service": {
+    "service": "omni-live-mark-as-delivered",
+    "serviceObject": {
+      "name": "omni-live-mark-as-delivered"
+    },
+    "provider": {
+      "name": "aws",
+      "runtime": "python3.11",
+      "region": "us-east-1",
+      "stage": "dev",
+      "deploymentBucket": "sls-deployment-state-omni-dev",
+      "iamRoleStatements": [
+        {
+          "Effect": "Allow",
+          "Action": [
+            "dynamodb:DescribeTable",
+            "dynamodb:Query",
+            "dynamodb:Scan",
+            "dynamodb:GetItem",
+            "dynamodb:PutItem",
+            "dynamodb:UpdateItem",
+            "dynamodb:DeleteItem"
+          ],
+          "Resource": "*"
+        },
+        {
+          "Effect": "Allow",
+          "Action": [
+            "ses:SendEmail",
+            "ses:SendRawEmail"
+          ],
+          "Resource": "*"
+        },
+        {
+          "Effect": "Allow",
+          "Action": [
+            "ssm:*"
+          ],
+          "Resource": "*"
+        },
+        {
+          "Effect": "Allow",
+          "Action": [
+            "s3:*"
+          ],
+          "Resource": "*"
+        },
+        {
+          "Effect": "Allow",
+          "Action": [
+            "athena:*"
+          ],
+          "Resource": "*"
+        },
+        {
+          "Effect": "Allow",
+          "Action": [
+            "glue:*"
+          ],
+          "Resource": "*"
+        }
+      ],
+      "versionFunctions": true,
+      "deploymentBucketObject": {
+        "name": "sls-deployment-state-omni-dev",
+        "serverSideEncryption": "AES256"
+      },
+      "compiledCloudFormationTemplate": {
+        "AWSTemplateFormatVersion": "2010-09-09",
+        "Description": "The AWS CloudFormation template for this Serverless application",
+        "Resources": {
+          "MarkasdeliveredLogGroup": {
+            "Type": "AWS::Logs::LogGroup",
+            "Properties": {
+              "LogGroupName": "/aws/lambda/omni-live-mark-as-delivered-dev"
+            }
+          },
+          "QueryAthenaLogGroup": {
+            "Type": "AWS::Logs::LogGroup",
+            "Properties": {
+              "LogGroupName": "/aws/lambda/omni-live-query-athena-dev"
+            }
+          },
+          "IamRoleLambdaExecution": {
+            "Type": "AWS::IAM::Role",
+            "Properties": {
+              "AssumeRolePolicyDocument": {
+                "Version": "2012-10-17",
+                "Statement": [
+                  {
+                    "Effect": "Allow",
+                    "Principal": {
+                      "Service": [
+                        "lambda.amazonaws.com"
+                      ]
+                    },
+                    "Action": [
+                      "sts:AssumeRole"
+                    ]
+                  }
+                ]
+              },
+              "Policies": [
+                {
+                  "PolicyName": {
+                    "Fn::Join": [
+                      "-",
+                      [
+                        "omni-live-mark-as-delivered",
+                        "dev",
+                        "lambda"
+                      ]
+                    ]
+                  },
+                  "PolicyDocument": {
+                    "Version": "2012-10-17",
+                    "Statement": [
+                      {
+                        "Effect": "Allow",
+                        "Action": [
+                          "logs:CreateLogStream",
+                          "logs:CreateLogGroup",
+                          "logs:TagResource"
+                        ],
+                        "Resource": [
+                          {
+                            "Fn::Sub": "arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/omni-live-query-athena-dev:*"
+                          },
+                          {
+                            "Fn::Sub": "arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/omni-live-mark-as-delivered-dev*:*"
+                          }
+                        ]
+                      },
+                      {
+                        "Effect": "Allow",
+                        "Action": [
+                          "logs:PutLogEvents"
+                        ],
+                        "Resource": [
+                          {
+                            "Fn::Sub": "arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/omni-live-query-athena-dev:*:*"
+                          },
+                          {
+                            "Fn::Sub": "arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/omni-live-mark-as-delivered-dev*:*:*"
+                          }
+                        ]
+                      },
+                      {
+                        "$ref": "$[\"service\"][\"provider\"][\"iamRoleStatements\"][0]"
+                      },
+                      {
+                        "$ref": "$[\"service\"][\"provider\"][\"iamRoleStatements\"][1]"
+                      },
+                      {
+                        "$ref": "$[\"service\"][\"provider\"][\"iamRoleStatements\"][2]"
+                      },
+                      {
+                        "$ref": "$[\"service\"][\"provider\"][\"iamRoleStatements\"][3]"
+                      },
+                      {
+                        "$ref": "$[\"service\"][\"provider\"][\"iamRoleStatements\"][4]"
+                      },
+                      {
+                        "$ref": "$[\"service\"][\"provider\"][\"iamRoleStatements\"][5]"
+                      }
+                    ]
+                  }
+                }
+              ],
+              "Path": "/",
+              "RoleName": {
+                "Fn::Join": [
+                  "-",
+                  [
+                    "omni-live-mark-as-delivered",
+                    "dev",
+                    {
+                      "Ref": "AWS::Region"
+                    },
+                    "lambdaRole"
+                  ]
+                ]
+              }
+            }
+          },
+          "MarkasdeliveredLambdaFunction": {
+            "Type": "AWS::Lambda::Function",
+            "Properties": {
+              "Code": {
+                "S3Bucket": "sls-deployment-state-omni-dev",
+                "S3Key": "serverless/omni-live-mark-as-delivered/dev/1714065715492-2024-04-25T17:21:55.492Z/markasdelivered.zip"
+              },
+              "Handler": "src/mark-as-delivered.lambda_handler",
+              "Runtime": "python3.11",
+              "FunctionName": "omni-live-mark-as-delivered-dev",
+              "MemorySize": 1024,
+              "Timeout": 900,
+              "Description": "omni live logistics mark-as-delivered",
+              "Environment": {
+                "Variables": {
+                  "Dynamo_Table": {
+                    "Ref": "ReadyforBilling"
+                  },
+                  "Environment": "dev",
+                  "Username": "apiuser",
+                  "Password": "lvlpapiuser"
+                }
+              },
+              "Role": {
+                "Fn::GetAtt": [
+                  "IamRoleLambdaExecution",
+                  "Arn"
+                ]
+              },
+              "Layers": [
+                "arn:aws:lambda:us-east-1:332281781429:layer:requests:1",
+                "arn:aws:lambda:us-east-1:332281781429:layer:urllib:1",
+                "arn:aws:lambda:us-east-1:332281781429:layer:pytz:1"
+              ]
+            },
+            "DependsOn": [
+              "MarkasdeliveredLogGroup"
+            ]
+          },
+          "QueryAthenaLambdaFunction": {
+            "Type": "AWS::Lambda::Function",
+            "Properties": {
+              "Code": {
+                "S3Bucket": "sls-deployment-state-omni-dev",
+                "S3Key": "serverless/omni-live-mark-as-delivered/dev/1714065715492-2024-04-25T17:21:55.492Z/queryAthena.zip"
+              },
+              "Handler": "src/query-Athena.lambda_handler",
+              "Runtime": "python3.11",
+              "FunctionName": "omni-live-query-athena-dev",
+              "MemorySize": 1024,
+              "Timeout": 900,
+              "Description": "omni live logistics query athena",
+              "Role": {
+                "Fn::GetAtt": [
+                  "IamRoleLambdaExecution",
+                  "Arn"
+                ]
+              },
+              "Layers": [
+                "arn:aws:lambda:us-east-1:332281781429:layer:pytz:1"
+              ]
+            },
+            "DependsOn": [
+              "QueryAthenaLogGroup"
+            ]
+          },
+          "QueryAthenaLambdaVersionsTqZUHrmUm72CgKjIBbVQ6yi3UvqViLoHddvidQnJE": {
+            "Type": "AWS::Lambda::Version",
+            "DeletionPolicy": "Retain",
+            "Properties": {
+              "FunctionName": {
+                "Ref": "QueryAthenaLambdaFunction"
+              },
+              "CodeSha256": "Ui9/Mm6SXPWB59rEj9GM8egZI9pw0H+WeDqUKXdRv1A=",
+              "Description": "omni live logistics query athena"
+            }
+          },
+          "MarkasdeliveredLambdaVersionIyAyLB9nQt3Cm9SDTfao75VuJOHSA9aA93eg1Pa7X0": {
+            "Type": "AWS::Lambda::Version",
+            "DeletionPolicy": "Retain",
+            "Properties": {
+              "FunctionName": {
+                "Ref": "MarkasdeliveredLambdaFunction"
+              },
+              "CodeSha256": "iOEpzPN3XgcHSXEXycRy02tml7po35HoAjvsixCtYiE=",
+              "Description": "omni live logistics mark-as-delivered"
+            }
+          },
+          "OmniDashliveDashmarkDashasDashdeliveredDashdev": {
+            "Type": "AWS::StepFunctions::StateMachine",
+            "Properties": {
+              "DefinitionString": {
+                "Fn::Sub": [
+                  "{\n  \"Comment\": \"State machine for markasdelivered\",\n  \"StartAt\": \"queryAthena\",\n  \"States\": {\n    \"queryAthena\": {\n      \"Type\": \"Task\",\n      \"Resource\": \"${b64f41421c47f3bd9680d2aee8e1bfa3}\",\n      \"Parameters\": {\n        \"Payload.$\": \"$\"\n      },\n      \"Retry\": [\n        {\n          \"ErrorEquals\": [\n            \"Lambda.ServiceException\",\n            \"Lambda.AWSLambdaException\",\n            \"Lambda.SdkClientException\",\n            \"Lambda.TooManyRequestsException\"\n          ],\n          \"IntervalSeconds\": 1,\n          \"MaxAttempts\": 3,\n          \"BackoffRate\": 2\n        }\n      ],\n      \"ResultPath\": \"$.queryAthena\",\n      \"Next\": \"csvRecordsMap\"\n    },\n    \"csvRecordsMap\": {\n      \"Type\": \"Map\",\n      \"ToleratedFailurePercentage\": 100,\n      \"ItemProcessor\": {\n        \"ProcessorConfig\": {\n          \"Mode\": \"DISTRIBUTED\",\n          \"ExecutionType\": \"EXPRESS\"\n        },\n        \"StartAt\": \"CheckIfRecordsExist\",\n        \"States\": {\n          \"CheckIfRecordsExist\": {\n            \"Type\": \"Choice\",\n            \"Choices\": [\n              {\n                \"Variable\": \"$.Items\",\n                \"IsPresent\": true,\n                \"Next\": \"processCsvRecord\"\n              },\n              {\n                \"Variable\": \"$.item\",\n                \"IsPresent\": true,\n                \"Next\": \"processCsvRecord\"\n              },\n              {\n                \"Variable\": \"$.item\",\n                \"IsPresent\": false,\n                \"Next\": \"NoRecordsFound\"\n              }\n            ],\n            \"Default\": \"NoRecordsFound\"\n          },\n          \"NoRecordsFound\": {\n            \"Type\": \"Pass\",\n            \"Result\": \"No records found in CSV\",\n            \"End\": true\n          },\n          \"processCsvRecord\": {\n            \"Type\": \"Task\",\n            \"Resource\": \"${25c9da8320fe13738815351ecdc32e0a}\",\n            \"Parameters\": {\n              \"Payload.$\": \"$.Items\"\n            },\n            \"Retry\": [\n              {\n                \"ErrorEquals\": [\n                  \"Lambda.ServiceException\",\n                  \"Lambda.AWSLambdaException\",\n                  \"Lambda.SdkClientException\",\n                  \"Lambda.TooManyRequestsException\"\n                ],\n                \"IntervalSeconds\": 1,\n                \"MaxAttempts\": 3,\n                \"BackoffRate\": 2\n              }\n            ],\n            \"End\": true,\n            \"ResultPath\": \"$.processCsvRecordResult\"\n          }\n        }\n      },\n      \"ItemSelector\": {\n        \"item.$\": \"$$.Map.Item.Value\",\n        \"mapInput.$\": \"$\"\n      },\n      \"ItemReader\": {\n        \"Resource\": \"arn:aws:states:::s3:getObject\",\n        \"ReaderConfig\": {\n          \"InputType\": \"CSV\",\n          \"CSVHeaderLocation\": \"FIRST_ROW\"\n        },\n        \"Parameters\": {\n          \"Bucket.$\": \"$.queryAthena.Bucket\",\n          \"Key.$\": \"$.queryAthena.Key\"\n        }\n      },\n      \"ItemBatcher\": {\n        \"MaxItemsPerBatch\": 10\n      },\n      \"MaxConcurrency\": 2,\n      \"Label\": \"FileAnalysis\",\n      \"End\": true,\n      \"Catch\": [\n        {\n          \"ErrorEquals\": [\n            \"States.ItemReaderFailed\"\n          ],\n          \"Next\": \"HandleItemReaderFailed\"\n        }\n      ],\n      \"ResultPath\": null\n    },\n    \"HandleItemReaderFailed\": {\n      \"Type\": \"Pass\",\n      \"Result\": \"No data records found in CSV\",\n      \"End\": true\n    }\n  }\n}",
+                  {
+                    "b64f41421c47f3bd9680d2aee8e1bfa3": {
+                      "Fn::GetAtt": [
+                        "QueryAthenaLambdaFunction",
+                        "Arn"
+                      ]
+                    },
+                    "25c9da8320fe13738815351ecdc32e0a": {
+                      "Fn::GetAtt": [
+                        "MarkasdeliveredLambdaFunction",
+                        "Arn"
+                      ]
+                    }
+                  }
+                ]
+              },
+              "RoleArn": {
+                "Fn::GetAtt": [
+                  "stateMachineRole",
+                  "Arn"
+                ]
+              },
+              "StateMachineName": "omni-live-mark-as-delivered-dev"
+            },
+            "DependsOn": []
+          },
+          "MarkDashasDashdeliveredStepFunctionsEventsRuleSchedule1": {
+            "Type": "AWS::Events::Rule",
+            "Properties": {
+              "ScheduleExpression": "cron(*/30 * * * ? *)",
+              "State": "DISABLED",
+              "Targets": [
+                {
+                  "Arn": {
+                    "Ref": "OmniDashliveDashmarkDashasDashdeliveredDashdev"
+                  },
+                  "Id": "mark-as-deliveredStepFunctionsSchedule",
+                  "RoleArn": {
+                    "Fn::GetAtt": [
+                      "MarkDashasDashdeliveredScheduleToStepFunctionsRole",
+                      "Arn"
+                    ]
+                  }
+                }
+              ]
+            }
+          },
+          "MarkDashasDashdeliveredScheduleToStepFunctionsRole": {
+            "Type": "AWS::IAM::Role",
+            "Properties": {
+              "AssumeRolePolicyDocument": {
+                "Version": "2012-10-17",
+                "Statement": [
+                  {
+                    "Effect": "Allow",
+                    "Principal": {
+                      "Service": "events.amazonaws.com"
+                    },
+                    "Action": "sts:AssumeRole"
+                  }
+                ]
+              },
+              "Policies": [
+                {
+                  "PolicyName": "dev-us-east-1-omni-live-mark-as-delivered-mark-as-delivered-schedule",
+                  "PolicyDocument": {
+                    "Version": "2012-10-17",
+                    "Statement": [
+                      {
+                        "Effect": "Allow",
+                        "Action": [
+                          "states:StartExecution"
+                        ],
+                        "Resource": {
+                          "Ref": "OmniDashliveDashmarkDashasDashdeliveredDashdev"
+                        }
+                      }
+                    ]
+                  }
+                }
+              ]
+            }
+          },
+          "ReadyforBilling": {
+            "Type": "AWS::DynamoDB::Table",
+            "Properties": {
+              "TableName": "omni-live-logistics-ready-for-billing-dev",
+              "BillingMode": "PAY_PER_REQUEST",
+              "AttributeDefinitions": [
+                {
+                  "AttributeName": "order_id",
+                  "AttributeType": "S"
+                }
+              ],
+              "KeySchema": [
+                {
+                  "AttributeName": "order_id",
+                  "KeyType": "HASH"
+                }
+              ]
+            }
+          },
+          "stateMachineRole": {
+            "Type": "AWS::IAM::Role",
+            "Properties": {
+              "RoleName": "mark-as-delivered-stepfuction-role-dev",
+              "AssumeRolePolicyDocument": {
+                "Statement": [
+                  {
+                    "Effect": "Allow",
+                    "Principal": {
+                      "Service": [
+                        "states.amazonaws.com"
+                      ]
+                    },
+                    "Action": [
+                      "sts:AssumeRole"
+                    ]
+                  }
+                ]
+              },
+              "Policies": [
+                {
+                  "PolicyName": "statePolicy",
+                  "PolicyDocument": {
+                    "Version": "2012-10-17",
+                    "Statement": [
+                      {
+                        "Effect": "Allow",
+                        "Action": [
+                          "lambda:InvokeFunction"
+                        ],
+                        "Resource": "*"
+                      },
+                      {
+                        "Effect": "Allow",
+                        "Action": [
+                          "s3:*",
+                          "s3-object-lambda:*"
+                        ],
+                        "Resource": "*"
+                      },
+                      {
+                        "Effect": "Allow",
+                        "Action": [
+                          "states:RedriveExecution",
+                          "states:StartExecution",
+                          "states:DescribeExecution",
+                          "states:StopExecution"
+                        ],
+                        "Resource": "*"
+                      },
+                      {
+                        "Effect": "Allow",
+                        "Action": [
+                          "events:PutTargets",
+                          "events:PutRule",
+                          "events:DescribeRule"
+                        ],
+                        "Resource": "*"
+                      },
+                      {
+                        "Effect": "Allow",
+                        "Action": [
+                          "xray:PutTraceSegments",
+                          "xray:PutTelemetryRecords",
+                          "xray:GetSamplingRules",
+                          "xray:GetSamplingTargets"
+                        ],
+                        "Resource": "*"
+                      },
+                      {
+                        "Effect": "Allow",
+                        "Action": [
+                          "logs:CreateLogGroup",
+                          "logs:CreateLogStream",
+                          "logs:PutLogEvents"
+                        ],
+                        "Resource": "*"
+                      }
+                    ]
+                  }
+                }
+              ]
+            }
+          }
+        },
+        "Outputs": {
+          "ServerlessDeploymentBucketName": {
+            "Value": "sls-deployment-state-omni-dev",
+            "Export": {
+              "Name": "sls-omni-live-mark-as-delivered-dev-ServerlessDeploymentBucketName"
+            }
+          },
+          "QueryAthenaLambdaFunctionQualifiedArn": {
+            "Description": "Current Lambda function version",
+            "Value": {
+              "Ref": "QueryAthenaLambdaVersionsTqZUHrmUm72CgKjIBbVQ6yi3UvqViLoHddvidQnJE"
+            },
+            "Export": {
+              "Name": "sls-omni-live-mark-as-delivered-dev-QueryAthenaLambdaFunctionQualifiedArn"
+            }
+          },
+          "MarkasdeliveredLambdaFunctionQualifiedArn": {
+            "Description": "Current Lambda function version",
+            "Value": {
+              "Ref": "MarkasdeliveredLambdaVersionIyAyLB9nQt3Cm9SDTfao75VuJOHSA9aA93eg1Pa7X0"
+            },
+            "Export": {
+              "Name": "sls-omni-live-mark-as-delivered-dev-MarkasdeliveredLambdaFunctionQualifiedArn"
+            }
+          },
+          "OmniDashliveDashmarkDashasDashdeliveredDashdevArn": {
+            "Description": "Current StateMachine Arn",
+            "Value": {
+              "Ref": "OmniDashliveDashmarkDashasDashdeliveredDashdev"
+            },
+            "Export": {
+              "Name": "sls-omni-live-mark-as-delivered-dev-OmniDashliveDashmarkDashasDashdeliveredDashdevArn"
+            }
+          }
+        }
+      },
+      "vpc": {}
+    },
+    "plugins": [
+      "serverless-python-requirements",
+      "serverless-step-functions"
+    ],
+    "pluginsData": {},
+    "functions": {
+      "markasdelivered": {
+        "name": "omni-live-mark-as-delivered-dev",
+        "handler": "src/mark-as-delivered.lambda_handler",
+        "description": "omni live logistics mark-as-delivered",
+        "timeout": 900,
+        "package": {
+          "patterns": [
+            "!**/*",
+            "src/shared/**",
+            "src/mark-as-delivered.py",
+            "src/query_file.sql"
+          ],
+          "artifact": "C:\\Users\\Raviteja\\github\\omni-live-mark-as-delivered\\.serverless\\markasdelivered.zip"
+        },
+        "runtime": "python3.11",
+        "layers": {
+          "$ref": "$[\"service\"][\"provider\"][\"compiledCloudFormationTemplate\"][\"Resources\"][\"MarkasdeliveredLambdaFunction\"][\"Properties\"][\"Layers\"]"
+        },
+        "environment": {
+          "Dynamo_Table": {
+            "$ref": "$[\"service\"][\"provider\"][\"compiledCloudFormationTemplate\"][\"Resources\"][\"MarkasdeliveredLambdaFunction\"][\"Properties\"][\"Environment\"][\"Variables\"][\"Dynamo_Table\"]"
+          },
+          "Environment": "dev",
+          "Username": "apiuser",
+          "Password": "lvlpapiuser"
+        },
+        "events": [],
+        "module": ".",
+        "memory": 1024,
+        "vpc": {},
+        "versionLogicalId": "MarkasdeliveredLambdaVersionIyAyLB9nQt3Cm9SDTfao75VuJOHSA9aA93eg1Pa7X0"
+      },
+      "queryAthena": {
+        "name": "omni-live-query-athena-dev",
+        "handler": "src/query-Athena.lambda_handler",
+        "description": "omni live logistics query athena",
+        "timeout": 900,
+        "package": {
+          "patterns": [
+            "!**/*",
+            "src/shared/**",
+            "src/query-Athena.py",
+            "src/query_file.sql"
+          ],
+          "artifact": "C:\\Users\\Raviteja\\github\\omni-live-mark-as-delivered\\.serverless\\queryAthena.zip"
+        },
+        "runtime": "python3.11",
+        "layers": {
+          "$ref": "$[\"service\"][\"provider\"][\"compiledCloudFormationTemplate\"][\"Resources\"][\"QueryAthenaLambdaFunction\"][\"Properties\"][\"Layers\"]"
+        },
+        "events": [],
+        "module": ".",
+        "memory": 1024,
+        "vpc": {},
+        "versionLogicalId": "QueryAthenaLambdaVersionsTqZUHrmUm72CgKjIBbVQ6yi3UvqViLoHddvidQnJE"
+      }
+    },
+    "resources": {
+      "Resources": {
+        "ReadyforBilling": {
+          "Type": "AWS::DynamoDB::Table",
+          "Properties": {
+            "TableName": "omni-live-logistics-ready-for-billing-dev",
+            "BillingMode": "PAY_PER_REQUEST",
+            "AttributeDefinitions": [
+              {
+                "AttributeName": "order_id",
+                "AttributeType": "S"
+              }
+            ],
+            "KeySchema": [
+              {
+                "AttributeName": "order_id",
+                "KeyType": "HASH"
+              }
+            ]
+          }
+        },
+        "stateMachineRole": {
+          "Type": "AWS::IAM::Role",
+          "Properties": {
+            "RoleName": "mark-as-delivered-stepfuction-role-dev",
+            "AssumeRolePolicyDocument": {
+              "Statement": [
+                {
+                  "Effect": "Allow",
+                  "Principal": {
+                    "Service": [
+                      "states.amazonaws.com"
+                    ]
+                  },
+                  "Action": [
+                    "sts:AssumeRole"
+                  ]
+                }
+              ]
+            },
+            "Policies": [
+              {
+                "PolicyName": "statePolicy",
+                "PolicyDocument": {
+                  "Version": "2012-10-17",
+                  "Statement": [
+                    {
+                      "Effect": "Allow",
+                      "Action": [
+                        "lambda:InvokeFunction"
+                      ],
+                      "Resource": "*"
+                    },
+                    {
+                      "Effect": "Allow",
+                      "Action": [
+                        "s3:*",
+                        "s3-object-lambda:*"
+                      ],
+                      "Resource": "*"
+                    },
+                    {
+                      "Effect": "Allow",
+                      "Action": [
+                        "states:RedriveExecution",
+                        "states:StartExecution",
+                        "states:DescribeExecution",
+                        "states:StopExecution"
+                      ],
+                      "Resource": "*"
+                    },
+                    {
+                      "Effect": "Allow",
+                      "Action": [
+                        "events:PutTargets",
+                        "events:PutRule",
+                        "events:DescribeRule"
+                      ],
+                      "Resource": "*"
+                    },
+                    {
+                      "Effect": "Allow",
+                      "Action": [
+                        "xray:PutTraceSegments",
+                        "xray:PutTelemetryRecords",
+                        "xray:GetSamplingRules",
+                        "xray:GetSamplingTargets"
+                      ],
+                      "Resource": "*"
+                    },
+                    {
+                      "Effect": "Allow",
+                      "Action": [
+                        "logs:CreateLogGroup",
+                        "logs:CreateLogStream",
+                        "logs:PutLogEvents"
+                      ],
+                      "Resource": "*"
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        }
+      },
+      "Outputs": {}
+    },
+    "configValidationMode": "warn",
+    "serviceFilename": "serverless.yml",
+    "initialServerlessConfig": {
+      "service": "omni-live-mark-as-delivered",
+      "plugins": {
+        "$ref": "$[\"service\"][\"plugins\"]"
+      },
+      "provider": {
+        "$ref": "$[\"service\"][\"provider\"]"
+      },
+      "package": {
+        "individually": true,
+        "artifactsS3KeyDirname": "serverless/omni-live-mark-as-delivered/dev/code-artifacts",
+        "deploymentBucket": "sls-deployment-state-omni-dev",
+        "artifactDirectoryName": "serverless/omni-live-mark-as-delivered/dev/1714065715492-2024-04-25T17:21:55.492Z"
+      },
+      "functions": {
+        "$ref": "$[\"service\"][\"functions\"]"
+      },
+      "stepFunctions": {
+        "stateMachines": {
+          "mark-as-delivered": {
+            "name": "omni-live-mark-as-delivered-dev",
+            "role": {
+              "Fn::GetAtt": [
+                "stateMachineRole",
+                "Arn"
+              ]
+            },
+            "definition": {
+              "Comment": "State machine for markasdelivered",
+              "StartAt": "queryAthena",
+              "States": {
+                "queryAthena": {
+                  "Type": "Task",
+                  "Resource": "${b64f41421c47f3bd9680d2aee8e1bfa3}",
+                  "Parameters": {
+                    "Payload.$": "$"
+                  },
+                  "Retry": [
+                    {
+                      "ErrorEquals": [
+                        "Lambda.ServiceException",
+                        "Lambda.AWSLambdaException",
+                        "Lambda.SdkClientException",
+                        "Lambda.TooManyRequestsException"
+                      ],
+                      "IntervalSeconds": 1,
+                      "MaxAttempts": 3,
+                      "BackoffRate": 2
+                    }
+                  ],
+                  "ResultPath": "$.queryAthena",
+                  "Next": "csvRecordsMap"
+                },
+                "csvRecordsMap": {
+                  "Type": "Map",
+                  "ToleratedFailurePercentage": 100,
+                  "ItemProcessor": {
+                    "ProcessorConfig": {
+                      "Mode": "DISTRIBUTED",
+                      "ExecutionType": "EXPRESS"
+                    },
+                    "StartAt": "CheckIfRecordsExist",
+                    "States": {
+                      "CheckIfRecordsExist": {
+                        "Type": "Choice",
+                        "Choices": [
+                          {
+                            "Variable": "$.Items",
+                            "IsPresent": true,
+                            "Next": "processCsvRecord"
+                          },
+                          {
+                            "Variable": "$.item",
+                            "IsPresent": true,
+                            "Next": "processCsvRecord"
+                          },
+                          {
+                            "Variable": "$.item",
+                            "IsPresent": false,
+                            "Next": "NoRecordsFound"
+                          }
+                        ],
+                        "Default": "NoRecordsFound"
+                      },
+                      "NoRecordsFound": {
+                        "Type": "Pass",
+                        "Result": "No records found in CSV",
+                        "End": true
+                      },
+                      "processCsvRecord": {
+                        "Type": "Task",
+                        "Resource": "${25c9da8320fe13738815351ecdc32e0a}",
+                        "Parameters": {
+                          "Payload.$": "$.Items"
+                        },
+                        "Retry": [
+                          {
+                            "ErrorEquals": [
+                              "Lambda.ServiceException",
+                              "Lambda.AWSLambdaException",
+                              "Lambda.SdkClientException",
+                              "Lambda.TooManyRequestsException"
+                            ],
+                            "IntervalSeconds": 1,
+                            "MaxAttempts": 3,
+                            "BackoffRate": 2
+                          }
+                        ],
+                        "End": true,
+                        "ResultPath": "$.processCsvRecordResult"
+                      }
+                    }
+                  },
+                  "ItemSelector": {
+                    "item.$": "$$.Map.Item.Value",
+                    "mapInput.$": "$"
+                  },
+                  "ItemReader": {
+                    "Resource": "arn:aws:states:::s3:getObject",
+                    "ReaderConfig": {
+                      "InputType": "CSV",
+                      "CSVHeaderLocation": "FIRST_ROW"
+                    },
+                    "Parameters": {
+                      "Bucket.$": "$.queryAthena.Bucket",
+                      "Key.$": "$.queryAthena.Key"
+                    }
+                  },
+                  "ItemBatcher": {
+                    "MaxItemsPerBatch": 10
+                  },
+                  "MaxConcurrency": 2,
+                  "Label": "FileAnalysis",
+                  "End": true,
+                  "Catch": [
+                    {
+                      "ErrorEquals": [
+                        "States.ItemReaderFailed"
+                      ],
+                      "Next": "HandleItemReaderFailed"
+                    }
+                  ],
+                  "ResultPath": null
+                },
+                "HandleItemReaderFailed": {
+                  "Type": "Pass",
+                  "Result": "No data records found in CSV",
+                  "End": true
+                }
+              }
+            },
+            "events": [
+              {
+                "schedule": {
+                  "rate": "cron(*/30 * * * ? *)",
+                  "enabled": false
+                }
+              }
+            ]
+          }
+        }
+      },
+      "resources": {
+        "$ref": "$[\"service\"][\"resources\"]"
+      }
+    },
+    "layers": {},
+    "isDashboardMonitoringPreconfigured": false,
+    "stepFunctions": {
+      "stateMachines": {
+        "$ref": "$[\"service\"][\"initialServerlessConfig\"][\"stepFunctions\"][\"stateMachines\"]"
+      },
+      "activities": []
+    }
+  },
+  "package": {
+    "individually": true,
+    "artifactDirectoryName": "serverless/omni-live-mark-as-delivered/dev/1714065715492-2024-04-25T17:21:55.492Z",
+    "artifact": ""
+  }
+}

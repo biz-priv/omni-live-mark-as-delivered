@@ -1,7 +1,7 @@
-ready-for-billing:
+mark-as-delivered:
   Type: AWS::DynamoDB::Table
   Properties:
-    TableName: omni-live-logistics-ready-for-billing-${self:provider.stage}
+    TableName: omni-live-mark-as-delivered-${self:provider.stage}
     BillingMode: PAY_PER_REQUEST
     AttributeDefinitions:
       - AttributeName: "order_id"

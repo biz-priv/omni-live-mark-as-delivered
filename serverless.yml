@@ -64,7 +64,7 @@ resources:
     #     Name: '/markasdelivered/bucket/key/parameter/${self:provider.stage}'
     #     Type: "String"
     #     Value: "bucketkey"
-    # ReadyforBilling: ${file(config/dynamo/ready-for-billing-table.yml):ready-for-billing}
+    ReadyforBilling: ${file(config/dynamo/ready-for-billing-table.yml):ready-for-billing}
 
     stateMachineRole:
       Type: AWS::IAM::Role

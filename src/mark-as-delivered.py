@@ -26,7 +26,7 @@ def lambda_handler(event, context):
             Item={
                 'order_id': order_id,
                 'movement_id': movement_id,
-                'status': status
+                'status_code': response
             }
                 )
         

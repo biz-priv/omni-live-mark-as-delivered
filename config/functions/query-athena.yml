@@ -12,6 +12,5 @@ function:
   runtime: python3.11
   layers:
       - arn:aws:lambda:us-east-1:332281781429:layer:pytz:1
-  # environment:
-  #     ssm_parameter: !Ref BucketKey
-
+  environment:
+      Environment: ${self:provider.stage}

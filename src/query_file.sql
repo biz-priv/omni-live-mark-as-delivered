@@ -17,4 +17,4 @@ w4 as (
  left join (select * from movement_order mo join w3 on mo.id=w3.id and mo.transact_id=w3.transact_id) mo on mo.movement_id = m.id
  left join (select o.* from orders o join w1 on o.id=w1.id and o.transact_id=w1.transact_id) o on o.id = mo.order_id
  where m.brokerage_status = 'UNLOAD'
- 	and s2.actual_arrival <= date_add('hour', -48, current_timestamp) limit 10 ;
+ 	and s2.actual_arrival <= date_add('hour', -48, current_timestamp) ;

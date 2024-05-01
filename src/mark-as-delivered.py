@@ -12,7 +12,7 @@ def lambda_handler(event, context):
     for item in event["Payload"]:
         order_id=item['item']["order_id"]
         movement_id=item['item']["movement_id"]
-        print("ids",movement_id,order_id,os.environ['Environment'])
+        print("movement id & order id & env :",movement_id,order_id,os.environ['Environment'])
         response=update_movement(movement_id,order_id)
         # Update status based on response
         if response == 200:
@@ -97,4 +97,4 @@ def update_movement(movement_id, order_id):
         put_url = f"https://tms-lvlp.loadtracking.com/ws/movement/update"
     put_response = requests.put(put_url, auth=(username, password), headers=mcleod_headers, json=get_output)
     print(f"Updating Movement: {put_response.status_code}")
-    return put_response
+    return put_response.status_code

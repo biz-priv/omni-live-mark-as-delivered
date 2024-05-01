@@ -1,0 +1,123 @@
+service: omni-live-mark-as-delivered
+
+plugins:
+  - serverless-python-requirements
+  - serverless-step-functions
+
+provider:
+  name: aws
+  runtime: python3.11
+  region: ${opt:region, 'us-east-1'}
+  stage: ${opt:stage, 'dev'}
+  deploymentBucket:
+    name: ${ssm:/omni-dw/${self:provider.stage}/sls/deployment/bucket}
+    serverSideEncryption: AES256
+  iamRoleStatements:
+    - Effect: "Allow"
+      Action:
+        - dynamodb:DescribeTable
+        - dynamodb:Query
+        - dynamodb:Scan
+        - dynamodb:GetItem
+        - dynamodb:PutItem
+        - dynamodb:UpdateItem
+        - dynamodb:DeleteItem
+      Resource: "*"
+    - Effect: "Allow"
+      Action:
+        - ses:SendEmail
+        - ses:SendRawEmail
+      Resource: "*"
+    - Effect: "Allow"
+      Action:
+        - ssm:*
+      Resource: "*"
+    - Effect: "Allow"
+      Action:
+        - s3:*
+      Resource: "*"
+    - Effect: "Allow"
+      Action:
+        - athena:*
+      Resource: "*"
+    - Effect: "Allow"
+      Action: 
+        - glue:*
+      Resource: "*"
+
+package:
+  individually: true
+
+functions:
+  markasdelivered: ${file(config/functions/mark-as-delivered.yml):function}
+  queryAthena: ${file(config/functions/query-athena.yml):function}
+
+stepFunctions:
+  stateMachines:
+    mark-as-delivered: ${file(config/step-function/mark-as-delivered-statemachine.yml):stateMachine}
+
+resources:
+  Resources:
+    # BucketKey:
+    #   Type: "AWS::SSM::Parameter"
+    #   Properties:
+    #     Name: '/markasdelivered/bucket/key/parameter/${self:provider.stage}'
+    #     Type: "String"
+    #     Value: "bucketkey"
+    MarkasDelivered: ${file(config/dynamo/mark-as-delivered.yml):mark-as-delivered}
+
+    stateMachineRole:
+      Type: AWS::IAM::Role
+      Properties:
+        RoleName: mark-as-delivered-stepfuction-role-${self:provider.stage}
+        AssumeRolePolicyDocument:
+          Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - states.amazonaws.com
+            Action:
+              - sts:AssumeRole
+        Policies:
+          - PolicyName: statePolicy
+            PolicyDocument:
+              Version: "2012-10-17"
+              Statement:
+                - Effect: Allow
+                  Action:
+                    - lambda:InvokeFunction
+                  Resource: "*"
+                - Effect: Allow
+                  Action:
+                    - s3:*
+                    - s3-object-lambda:*
+                  Resource: "*"
+                - Effect: Allow
+                  Action:
+                    - states:RedriveExecution
+                    - states:StartExecution
+                    - states:DescribeExecution
+                    - states:StopExecution
+                  Resource: "*"
+                - Effect: Allow
+                  Action:
+                    - events:PutTargets
+                    - events:PutRule
+                    - events:DescribeRule
+                  Resource: "*"
+                - Effect: Allow
+                  Action:
+                    - xray:PutTraceSegments
+                    - xray:PutTelemetryRecords
+                    - xray:GetSamplingRules
+                    - xray:GetSamplingTargets
+                  Resource: "*"
+                - Effect: Allow
+                  Action:
+                    - logs:CreateLogGroup
+                    - logs:CreateLogStream
+                    - logs:PutLogEvents
+                  Resource: "*"
+# custom:
+#   pythonRequirements:
+#     dockerizePip: true

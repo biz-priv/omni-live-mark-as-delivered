@@ -1,0 +1,16 @@
+function:
+  name: omni-live-query-athena-${self:provider.stage}
+  handler: src/query-Athena.lambda_handler
+  description: omni live logistics query athena
+  timeout: 900
+  package:
+    patterns:
+      - "!**/*"
+      - "src/shared/**"
+      - "src/query-Athena.py"
+      - "src/query_file.sql"
+  runtime: python3.11
+  layers:
+      - arn:aws:lambda:us-east-1:332281781429:layer:pytz:1
+  environment:
+      Environment: ${self:provider.stage}

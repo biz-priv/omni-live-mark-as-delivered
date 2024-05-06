@@ -7,34 +7,51 @@ import pickle
 import os
 import boto3
 
+def send_sns_notification(message, subject):
+    sns_client = boto3.client('sns')
+    topic_arn = os.environ['TopicArn']
+    sns_client.publish(
+        Subject=subject,
+        TopicArn=topic_arn,
+        Message=message
+    )
+
 def lambda_handler(event, context):
-    print("event:",event)   
-    for item in event["Payload"]:
-        order_id=item['item']["order_id"]
-        movement_id=item['item']["movement_id"]
-        print("movement id & order id & env :",movement_id,order_id,os.environ['Environment'])
-        response=update_movement(movement_id,order_id)
-        # Update status based on response
-        if response == 200:
-            status = 'Accepted'
-        else:
-            status = 'Rejected'
-        # Store data in DynamoDB
-        dynamodb = boto3.resource('dynamodb')
-        table = dynamodb.Table(os.environ['Dynamo_Table'])
-        table.put_item(
-            Item={
-                'order_id': order_id,
-                'movement_id': movement_id,
-                'status_code': response
-            }
-                )
-        print("Status:",status)
-        
-    return {
-        'statusCode': 200,
-        'body': json.dumps('Succeeded')
-    }
+    try:
+        print("event:", event)   
+        for item in event["Payload"]:
+            order_id = item['item']["order_id"]
+            movement_id = item['item']["movement_id"]
+            print("movement id & order id & env :", movement_id, order_id, os.environ['Environment'])
+            response = update_movement(movement_id, order_id)
+            # Update status based on response
+            if response == 200:
+                status = 'Accepted'
+            else:
+                status = 'Rejected'
+            # Store data in DynamoDB
+            dynamodb = boto3.resource('dynamodb')
+            table = dynamodb.Table(os.environ['Dynamo_Table'])
+            table.put_item(
+                Item={
+                    'order_id': order_id,
+                    'movement_id': movement_id,
+                    'status_code': response
+                }
+            )
+            print("Status:", status)
+        return {
+            'statusCode': 200,
+            'body': json.dumps('Succeeded')
+        }
+    except Exception as e:
+        error_message = f"An error occurred in Lambda function: {str(e)}"
+        print(error_message)
+        send_sns_notification(error_message, "Error in Lambda Function")
+        return {
+            'statusCode': 500,
+            'body': json.dumps("Internal Error.")
+        }
 
 
 

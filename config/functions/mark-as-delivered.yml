@@ -19,3 +19,4 @@ function:
       Environment: ${self:provider.stage}
       Username: ${ssm:/readytobill/lvlp/username/${self:provider.stage}}
       Password: ${ssm:/readytobill/lvlp/password/${self:provider.stage}}
+      Topic_Arn: arn:aws:sns:us-east-1:332281781429:Omni-Live-Logistics-ErrorNotification-topic

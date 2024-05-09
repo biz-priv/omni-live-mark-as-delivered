@@ -44,6 +44,10 @@ provider:
       Action: 
         - glue:*
       Resource: "*"
+    - Effect: Allow
+      Action:
+        - sns:*
+      Resource: "*"
 
 package:
   individually: true

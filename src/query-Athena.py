@@ -1,3 +1,10 @@
+"""
+* File: src\query-Athena.py
+* Project: Omni-live-mark-as-delivered
+* Author: Bizcloud Experts
+* Date: 2024-05-02
+* Confidential and Proprietary
+"""
 import json
 import csv 
 import boto3

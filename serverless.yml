@@ -12,6 +12,10 @@ provider:
   deploymentBucket:
     name: ${ssm:/omni-dw/${self:provider.stage}/sls/deployment/bucket}
     serverSideEncryption: AES256
+  stackTags:
+    Application: Omni live mark as delivered
+    CreateBy: BizCloudExperts
+    Environment: ${self:provider.stage}    
   iamRoleStatements:
     - Effect: "Allow"
       Action:

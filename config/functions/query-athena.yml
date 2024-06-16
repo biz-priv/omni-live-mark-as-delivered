@@ -3,6 +3,8 @@ function:
   handler: src/query-Athena.lambda_handler
   description: omni live logistics query athena
   timeout: 900
+  tags:
+    Name: query-athena
   package:
     patterns:
       - "!**/*"

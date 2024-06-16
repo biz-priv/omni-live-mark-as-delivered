@@ -3,6 +3,8 @@ function:
   handler: src/mark-as-delivered.lambda_handler
   description: omni live logistics mark-as-delivered
   timeout: 900
+  tags:
+    Name: mark-as-delivered 
   package:
     patterns:
       - "!**/*"

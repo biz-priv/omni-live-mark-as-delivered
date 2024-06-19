@@ -1,3 +1,10 @@
+"""
+* File: src\mark-as-delivered.py
+* Project: Omni-live-mark-as-delivered
+* Author: Bizcloud Experts
+* Date: 2021-04-21
+* Confidential and Proprietary
+"""
 import requests
 import json
 from datetime import datetime, timedelta

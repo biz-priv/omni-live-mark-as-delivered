@@ -76,6 +76,7 @@ def update_movement(movement_id, order_id):
     else:
         get_url = f"https://tms-lvlp.loadtracking.com/ws/movement/{movement_id}"
     get_response = requests.get(get_url, auth=(username, password), headers=mcleod_headers)
+    print("55",get_response)
     get_output = get_response.json()
     ##############
     # UPDATE FIELDS (NEED TO UPDATE STOP, ORDER AS WELL, SO GET THE STOP)
@@ -109,6 +110,7 @@ def update_movement(movement_id, order_id):
     departure = arrival + timedelta(hours=2)
     departure = departure.strftime('%Y%m%d%H%M%S%z')
     get_output2["actual_departure"] = departure
+    get_output2["status"] = "D"
     if env=='dev':
         put_url2 = f"https://tms-lvlp.loadtracking.com:6790/ws/stop/update"
     else:
